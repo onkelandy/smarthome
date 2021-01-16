@@ -54,3 +54,6 @@ requirements/conf_all.txt
 **/.vscode/
 /custom_plugins
 /priv_tools
+dev
+modules
+plugins
