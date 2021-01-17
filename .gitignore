@@ -57,3 +57,4 @@ requirements/conf_all.txt
 dev
 modules
 plugins
+venv
