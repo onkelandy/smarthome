@@ -294,6 +294,7 @@ class Item():
         self._log_rules = {}
         self._log_text = None
         self._fading = False
+        self._stop_fading = False
         self._items_to_trigger = []
         self.__last_change = self.shtime.now()
         self.__last_update = self.__last_change
@@ -2587,9 +2588,18 @@ class Item():
             self._autotimer_value = None
 
 
-    def fade(self, dest, step=1, delta=1):
+    def fade(self, dest, step=1, delta=1, stop_fade=None, continue_fade=None):
+        if stop_fade is None:
+            stop_fade = []
+        if continue_fade is None:
+            continue_fade = []
+        if not isinstance(stop_fade, list):
+            logger.warning(f"Include parameter {stop_fade} for fader {self} has to be a list")
+        if not isinstance(continue_fade, list):
+            logger.warning(f"Include parameter {continue_fade} for fader {self} has to be a list")
+
         dest = float(dest)
-        self._sh.trigger(self._path, fadejob, value={'item': self, 'dest': dest, 'step': step, 'delta': delta})
+        self._sh.trigger(self._path, fadejob, value={'item': self, 'dest': dest, 'step': step, 'delta': delta, 'stop_fade': stop_fade, 'continue_fade': continue_fade})
 
     def return_children(self):
         for child in self.__children:
@@ -2620,7 +2630,7 @@ class Item():
 
         item = self
         while level >= 1:
-            print(f'level is {level}, item is {item}')
+            #print(f'level is {level}, item is {item}')
             if item._is_top_of_item_tree():
                 if strict:
                     return

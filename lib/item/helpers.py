@@ -26,6 +26,7 @@ import os
 import datetime
 import dateutil.parser
 import json
+import re
 
 from ast import literal_eval
 import pickle
@@ -248,23 +249,57 @@ def cache_write(filename, value, cformat=CACHE_FORMAT):
 #####################################################################
 # Fade Method
 #####################################################################
-def fadejob(item, dest, step, delta, caller=None):
+def fadejob(item, dest, step, delta, stop_fade=None, continue_fade=None):
+    def check_external_change(entry_type, entry_value):
+        matches = []
+        for pattern in entry_value:
+            regex = re.compile(pattern, re.IGNORECASE)
+            if regex.match(item.property.last_change_by):
+                if entry_type == "stop_fade":
+                    matches.append(True)  # Match in stop_fade, should stop
+                else:
+                    matches.append(False)  # Match in continue_fade, should continue fading
+            else:
+                if entry_type == "continue_fade":
+                    matches.append(True)  # No match in continue_fade -> we can stop
+                else:
+                    matches.append(False)  # No match in stop_fade -> keep fading
+        return matches
+
     if item._fading:
         return
     else:
         item._fading = True
-    if item._value < dest:
-        while (item._value + step) < dest and item._fading:
-            item(item._value + step, 'fader')
-            item._lock.acquire()
-            item._lock.wait(delta)
-            item._lock.release()
-    else:
-        while (item._value - step) > dest and item._fading:
-            item(item._value - step, 'fader')
-            item._lock.acquire()
-            item._lock.wait(delta)
-            item._lock.release()
+    while (item._value < dest if item._value < dest else item._value > dest) and not item._stop_fading:
+        fade_value = item._value + (step if item._value < dest else -step)
+        # Detect external change immediately and stop
+        if item._fading is False:
+            fade_value = item.property.last_value + (step if item._value < dest else -step)
+            including = check_external_change("stop_fade", stop_fade) if stop_fade else [False]
+            excluding = check_external_change("continue_fade", continue_fade) if continue_fade else [False]
+
+            # If stop_fade is set and there's a match, stop fading immediately
+            if stop_fade and True in including:
+                # print(f"Breaking fade loop, match in stop_fade for {item.property.last_change_by}")
+                break
+
+            # If continue_fade is set and there is no match, stop fading immediately
+            if continue_fade and False not in excluding:
+                # print(f"Stopping fade loop, no match in continue_fade for {item.property.last_change_by}")
+                break
+
+            # Otherwise, continue fading
+            # print(f"{datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} Continuing fade loop, match in continue_fade for {item.property.last_change_by}")
+            item._fading = True
+
+        if item._fading:
+            # print(f"{datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} Fading... value is {fade_value}, including: N/A, excluding: N/A")
+            item(fade_value, 'fader')
+
+        item._lock.acquire()
+        item._lock.wait(delta)  # Wait for the remaining time
+        item._lock.release()
+
     if item._fading:
         item._fading = False
         item(dest, 'Fader')
