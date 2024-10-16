@@ -274,12 +274,10 @@ def fadejob(item, dest, step, delta, stop_fade=None, continue_fade=None, instant
 
         while (item._value < dest if item._value < dest else item._value > dest) and item._fading:
             current_time = time.time()
-
-            # Detect external change immediately and stop
             elapsed_time = current_time - last_update_time
 
             # Only fade if the full delta interval has passed
-            if elapsed_time >= delta or (instant_set is True and start_value is None):
+            if elapsed_time >= delta or instant_set is True:
                 instant_set = False
                 if start_value is not None:
                     fade_value += (step if start_value < dest else -step)
@@ -307,20 +305,25 @@ def fadejob(item, dest, step, delta, stop_fade=None, continue_fade=None, instant
         start_value, last_update_time = do_fade(start_value, last_update_time, instant_set)
 
         if not item._fading and item.property.last_change_by != "fader:None":
-            including = check_external_change("stop_fade", stop_fade) if stop_fade else [False]
-            excluding = check_external_change("continue_fade", continue_fade) if continue_fade else [False]
+            stopping = check_external_change("stop_fade", stop_fade) if stop_fade else [False]
+            continuing = check_external_change("continue_fade", continue_fade) if continue_fade else [False]
 
             # If stop_fade is set and there's a match, stop fading immediately
-            if stop_fade and True in including:
+            if stop_fade and True in stopping:
                 # print(f"{datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} Fader {item}: Stopping fade loop, match in stop_fade for {item.property.last_change_by}")
                 return
 
             # If continue_fade is set and there is no match, stop fading immediately
-            if continue_fade and False not in excluding:
+            if continue_fade and False not in continuing:
                 # print(f"{datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} Fader {item}: Stopping fade loop, no match in continue_fade for {item.property.last_change_by}")
+                return
+
+            # If nothing is set, stop (original behaviour)
+            if not continue_fade and not stop_fade:
+                # print(f"{datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} Fader {item}: Stopping fade loop, no conditions set")
                 return
 
             # Otherwise, continue fading
             # print(f"{datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} Fader {item}: Continuing fade loop, match in continue_fade for {item.property.last_change_by}")
-            run_fade(start_value, last_update_time)
+            run_fade(start_value, last_update_time, instant_set=instant_set)
     run_fade(None, None, instant_set=instant_set)
