@@ -24,6 +24,7 @@
 import logging
 import os
 import datetime
+import time
 import dateutil.parser
 import json
 import re
@@ -249,7 +250,7 @@ def cache_write(filename, value, cformat=CACHE_FORMAT):
 #####################################################################
 # Fade Method
 #####################################################################
-def fadejob(item, dest, step, delta, stop_fade=None, continue_fade=None):
+def fadejob(item, dest, step, delta, stop_fade=None, continue_fade=None, instant_set=True):
     def check_external_change(entry_type, entry_value):
         matches = []
         for pattern in entry_value:
@@ -265,41 +266,61 @@ def fadejob(item, dest, step, delta, stop_fade=None, continue_fade=None):
                 else:
                     matches.append(False)  # No match in stop_fade -> keep fading
         return matches
+    def do_fade(start_value=None, last_update_time=None, instant_set=True):
+        if last_update_time is None:
+            last_update_time = time.time()
+        fade_value = start_value if start_value is not None else item._value
+        # print(f"{datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} Fader {item}: Last update time {last_update_time}, start value {start_value} fade value {fade_value}")
 
-    if item._fading:
-        return
-    else:
-        item._fading = True
-    while (item._value < dest if item._value < dest else item._value > dest) and not item._stop_fading:
-        fade_value = item._value + (step if item._value < dest else -step)
-        # Detect external change immediately and stop
-        if item._fading is False:
-            fade_value = item.property.last_value + (step if item._value < dest else -step)
+        while (item._value < dest if item._value < dest else item._value > dest) and item._fading:
+            current_time = time.time()
+
+            # Detect external change immediately and stop
+            elapsed_time = current_time - last_update_time
+
+            # Only fade if the full delta interval has passed
+            if elapsed_time >= delta or (instant_set is True and start_value is None):
+                instant_set = False
+                if start_value is not None:
+                    fade_value += (step if start_value < dest else -step)
+                    start_value = None
+                else:
+                    fade_value += (step if item._value < dest else -step)
+                # print(f"{datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} Fader {item}: Fading... value is {fade_value}, including: N/A, excluding: N/A")
+                item(fade_value, 'fader')
+                last_update_time = current_time
+            remaining_time = delta - elapsed_time
+            if remaining_time > 0:
+                item._lock.acquire()
+                item._lock.wait(remaining_time)
+                item._lock.release()
+
+            if not item._fading:  # Check again after waiting, before applying the next fade
+                break
+        return fade_value, last_update_time
+
+    def run_fade(start_value=None, last_update_time=None, instant_set=True):
+        if item._fading:
+            return
+        else:
+            item._fading = True
+        start_value, last_update_time = do_fade(start_value, last_update_time, instant_set)
+
+        if not item._fading and item.property.last_change_by != "fader:None":
             including = check_external_change("stop_fade", stop_fade) if stop_fade else [False]
             excluding = check_external_change("continue_fade", continue_fade) if continue_fade else [False]
 
             # If stop_fade is set and there's a match, stop fading immediately
             if stop_fade and True in including:
-                # print(f"Breaking fade loop, match in stop_fade for {item.property.last_change_by}")
-                break
+                # print(f"{datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} Fader {item}: Stopping fade loop, match in stop_fade for {item.property.last_change_by}")
+                return
 
             # If continue_fade is set and there is no match, stop fading immediately
             if continue_fade and False not in excluding:
-                # print(f"Stopping fade loop, no match in continue_fade for {item.property.last_change_by}")
-                break
+                # print(f"{datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} Fader {item}: Stopping fade loop, no match in continue_fade for {item.property.last_change_by}")
+                return
 
             # Otherwise, continue fading
-            # print(f"{datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} Continuing fade loop, match in continue_fade for {item.property.last_change_by}")
-            item._fading = True
-
-        if item._fading:
-            # print(f"{datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} Fading... value is {fade_value}, including: N/A, excluding: N/A")
-            item(fade_value, 'fader')
-
-        item._lock.acquire()
-        item._lock.wait(delta)  # Wait for the remaining time
-        item._lock.release()
-
-    if item._fading:
-        item._fading = False
-        item(dest, 'Fader')
+            # print(f"{datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} Fader {item}: Continuing fade loop, match in continue_fade for {item.property.last_change_by}")
+            run_fade(start_value, last_update_time)
+    run_fade(None, None, instant_set=instant_set)

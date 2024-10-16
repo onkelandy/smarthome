@@ -473,7 +473,8 @@ class Items():
         """
         for item in self.__items:
             self.__item_dict[item]._fading = False
-            self.__item_dict[item]._stop_fading = True
+            with self.__item_dict[item]._lock:
+                self.__item_dict[item]._lock.notify_all()
 
 
     def add_plugin_attribute(self, plugin_name, attribute_name, attribute):
