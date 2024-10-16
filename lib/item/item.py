@@ -2587,7 +2587,7 @@ class Item():
             self._autotimer_value = None
 
 
-    def fade(self, dest, step=1, delta=1, stop_fade=None, continue_fade=None, instant_set=True):
+    def fade(self, dest, step=1, delta=1, stop_fade=None, continue_fade=None, instant_set=True, instant_update=False):
         if stop_fade is None:
             stop_fade = []
         if continue_fade is None:
@@ -2598,7 +2598,7 @@ class Item():
             logger.warning(f"continue_fade parameter {continue_fade} for fader {self} has to be a list")
 
         dest = float(dest)
-        self._sh.trigger(self._path, fadejob, value={'item': self, 'dest': dest, 'step': step, 'delta': delta, 'stop_fade': stop_fade, 'continue_fade': continue_fade, 'instant_set': instant_set})
+        self._sh.trigger(self._path, fadejob, value={'item': self, 'dest': dest, 'step': step, 'delta': delta, 'stop_fade': stop_fade, 'continue_fade': continue_fade, 'instant_set': instant_set, 'instant_update': instant_update})
 
     def return_children(self):
         for child in self.__children:

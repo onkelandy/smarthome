@@ -250,7 +250,7 @@ def cache_write(filename, value, cformat=CACHE_FORMAT):
 #####################################################################
 # Fade Method
 #####################################################################
-def fadejob(item, dest, step, delta, stop_fade=None, continue_fade=None, instant_set=True):
+def fadejob(item, dest, step, delta, stop_fade, continue_fade, instant_set, instant_update):
     def check_external_change(entry_type, entry_value):
         matches = []
         for pattern in entry_value:
@@ -266,7 +266,7 @@ def fadejob(item, dest, step, delta, stop_fade=None, continue_fade=None, instant
                 else:
                     matches.append(False)  # No match in stop_fade -> keep fading
         return matches
-    def do_fade(start_value=None, last_update_time=None, instant_set=True):
+    def do_fade(instant_set, instant_update, start_value=None, last_update_time=None):
         if last_update_time is None:
             last_update_time = time.time()
         fade_value = start_value if start_value is not None else item._value
@@ -277,7 +277,9 @@ def fadejob(item, dest, step, delta, stop_fade=None, continue_fade=None, instant
             elapsed_time = current_time - last_update_time
 
             # Only fade if the full delta interval has passed
-            if elapsed_time >= delta or instant_set is True:
+            cond_set = instant_set is True and start_value is None
+            cond_update = instant_update is True and start_value is not None
+            if elapsed_time >= delta or cond_set or cond_update:
                 instant_set = False
                 if start_value is not None:
                     fade_value += (step if start_value < dest else -step)
@@ -294,15 +296,16 @@ def fadejob(item, dest, step, delta, stop_fade=None, continue_fade=None, instant
                 item._lock.release()
 
             if not item._fading:  # Check again after waiting, before applying the next fade
+                # print("Break")
                 break
         return fade_value, last_update_time
 
-    def run_fade(start_value=None, last_update_time=None, instant_set=True):
+    def run_fade(instant_set, instant_update, start_value=None, last_update_time=None):
         if item._fading:
             return
         else:
             item._fading = True
-        start_value, last_update_time = do_fade(start_value, last_update_time, instant_set)
+        start_value, last_update_time = do_fade(instant_set, instant_update, start_value, last_update_time)
 
         if not item._fading and item.property.last_change_by != "fader:None":
             stopping = check_external_change("stop_fade", stop_fade) if stop_fade else [False]
@@ -325,5 +328,6 @@ def fadejob(item, dest, step, delta, stop_fade=None, continue_fade=None, instant
 
             # Otherwise, continue fading
             # print(f"{datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} Fader {item}: Continuing fade loop, match in continue_fade for {item.property.last_change_by}")
-            run_fade(start_value, last_update_time, instant_set=instant_set)
-    run_fade(None, None, instant_set=instant_set)
+            run_fade(instant_set, instant_update, start_value=start_value, last_update_time=last_update_time)
+
+    run_fade(instant_set, instant_update)
