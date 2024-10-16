@@ -251,6 +251,10 @@ def cache_write(filename, value, cformat=CACHE_FORMAT):
 # Fade Method
 #####################################################################
 def fadejob(item, dest, step, delta, stop_fade, continue_fade, instant_set, instant_update):
+    """
+    fades an item value to a given destination value
+
+    """
     def check_external_change(entry_type, entry_value):
         matches = []
         for pattern in entry_value:

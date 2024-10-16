@@ -23,11 +23,13 @@ genutzt werden können.
 |                                | :doc:`autotimer <./standard_attribute/autotimer>`                              |
 |                                | nachlesen.                                                                     |
 +--------------------------------+--------------------------------------------------------------------------------+
-| fade(end, step, delta)         | Blendet das Item mit der definierten Schrittweite (int oder float) und         |
-|                                | timedelta (int oder float in Sekunden) auf einen angegebenen Wert auf oder     |
-|                                | ab. So wird z.B.: **sh.living.light.fade(100, 1, 2.5)** das Licht im           |
+| fade(end, step, delta,         | Blendet das Item mit der definierten Schrittweite (int oder float) und         |
+|   stop_fade, continue_fade,    | timedelta (int oder float in Sekunden) auf einen angegebenen Wert auf oder     |
+|   instant_set, instant_update) | ab. So wird z.B.: **sh.living.light.fade(100, 1, 2.5)** das Licht im           |
 |                                | Wohnzimmer mit einer Schrittweite von **1** und einem Zeitdelta von **2,5**    |
-|                                | Sekunden auf **100** herunterregeln.                                           |
+|                                | Sekunden auf **100** herunter regeln. Bei manueller Änderung wird der Prozess  |
+|                                | gestoppt. Dieses Verhalten kann jedoch durch stop_fade oder continue_fade      |
+|                                | geändert werden. Genaueres dazu ist in den Beispielen unten zu finden.         |
 +--------------------------------+--------------------------------------------------------------------------------+
 | remove_timer()                 | Entfernen eines vorher mit der Funktion timer() gestarteten Timers ohne dessen |
 |                                | Ablauf abzuwarten und die mit dem Ablauf verbundene Aktion auszuführen.        |
@@ -135,7 +137,27 @@ Die folgende Beispiel Logik nutzt einige der oben beschriebenen Funktionen:
    sh.item.autotimer()
 
    # will in- or decrement the living room light to 100 by a stepping of ``1`` and a timedelta of ``2.5`` seconds.
+   # As soon as the item living.light gets changed manually, the fader stops.
    sh.living.light.fade(100, 1, 2.5)
+
+Die folgenden Beispiele erläutern die fade-Funktion im Detail.
+Beispiel 1: Der Fade-Prozess wird nur gestoppt, wenn ein manueller Item-Wert über das Admin-Interface
+angegeben wurde. Wird das Item anders aktualisiert, wird der nächste Fade-Wert sofort gesetzt.
+Beispiel 2: Der Fade-Prozess wird durch sämtliche manuelle Item-Änderungen gestoppt, außer die Änderung
+kommt von einem Caller, der "KNX" beinhaltet.
+Beispiel 3: Der Fade-Prozess wird bei jeder manuellen Item-Änderung gestoppt.
+
+   .. code-block:: python
+      :caption:  logics/fading.py
+
+      # erstes Beispiel
+      sh.living.light.fade(100, 1, 2.5, stop_fade=["admin"], instant_update=True)
+
+      # zweites Beispiel
+      sh.living.light.fade(100, 1, 2.5, continue_fade=["KNX"])
+
+      # drittes Beispiel
+      sh.living.light.fade(100, 1, 2.5)
 
 Der folgende Beispiel eval Ausdruck sorgt dafür, dass ein Item den zugewiesenen Wert nur dann übernimmt,
 wenn die Wertänderung bzw. das Anstoßen der eval Funktion über das Admin Interface erfolgt ist und das
