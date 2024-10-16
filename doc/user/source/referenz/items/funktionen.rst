@@ -23,9 +23,9 @@ genutzt werden können.
 |                                | :doc:`autotimer <./standard_attribute/autotimer>`                              |
 |                                | nachlesen.                                                                     |
 +--------------------------------+--------------------------------------------------------------------------------+
-| fade(end, step, delta,         | Blendet das Item mit der definierten Schrittweite (int oder float) und         |
+| fade(end, step, delta, caller, | Blendet das Item mit der definierten Schrittweite (int oder float) und         |
 |   stop_fade, continue_fade,    | timedelta (int oder float in Sekunden) auf einen angegebenen Wert auf oder     |
-|   instant_set, instant_update) | ab. So wird z.B.: **sh.living.light.fade(100, 1, 2.5)** das Licht im           |
+|   instant_set, update)         | ab. So wird z.B.: **sh.living.light.fade(100, 1, 2.5)** das Licht im           |
 |                                | Wohnzimmer mit einer Schrittweite von **1** und einem Zeitdelta von **2,5**    |
 |                                | Sekunden auf **100** herunter regeln. Bei manueller Änderung wird der Prozess  |
 |                                | gestoppt. Dieses Verhalten kann jedoch durch stop_fade oder continue_fade      |
@@ -140,24 +140,33 @@ Die folgende Beispiel Logik nutzt einige der oben beschriebenen Funktionen:
    # As soon as the item living.light gets changed manually, the fader stops.
    sh.living.light.fade(100, 1, 2.5)
 
-Die folgenden Beispiele erläutern die fade-Funktion im Detail.
+Die folgenden Beispiele erläutern die fade-Funktion im Detail. stop_fade und continue_fade werden als
+reguläre Ausdrücke angegeben/verglichen (case insensitive).
 Beispiel 1: Der Fade-Prozess wird nur gestoppt, wenn ein manueller Item-Wert über das Admin-Interface
-angegeben wurde. Wird das Item anders aktualisiert, wird der nächste Fade-Wert sofort gesetzt.
+eingegeben wurde. Wird das Item von einem anderen Caller aktualisiert, wird normal weiter gefadet.
 Beispiel 2: Der Fade-Prozess wird durch sämtliche manuelle Item-Änderungen gestoppt, außer die Änderung
 kommt von einem Caller, der "KNX" beinhaltet.
 Beispiel 3: Der Fade-Prozess wird bei jeder manuellen Item-Änderung gestoppt.
+Beispiel 4: Wird die Fade-Funktion für das gleiche Item erneut mit anderen Werten aufgerufen und
+der update Parameter ist auf True gesetzt, dann wird das Fading "on the fly" den neuen Werten angepasst.
+So könnte während eines Hochfadens durch Setzen eines niedrigeren Wertes der Itemwert direkt abwärts gefadet werden.
+Auch die anderen Parameter werden für den aktuellen Fade-Vorgang überschrieben/aktualisiert.
 
    .. code-block:: python
       :caption:  logics/fading.py
 
       # erstes Beispiel
-      sh.living.light.fade(100, 1, 2.5, stop_fade=["admin"], instant_update=True)
+      sh.living.light.fade(100, 1, 2.5, stop_fade=["admin:*"])
 
       # zweites Beispiel
       sh.living.light.fade(100, 1, 2.5, continue_fade=["KNX"])
 
       # drittes Beispiel
       sh.living.light.fade(100, 1, 2.5)
+
+      # viertes Beispiel
+      sh.living.light.fade(100, 1, 2.5, update=True)
+      sh.living.light.fade(5, 2, 5.5, update=True)
 
 Der folgende Beispiel eval Ausdruck sorgt dafür, dass ein Item den zugewiesenen Wert nur dann übernimmt,
 wenn die Wertänderung bzw. das Anstoßen der eval Funktion über das Admin Interface erfolgt ist und das
