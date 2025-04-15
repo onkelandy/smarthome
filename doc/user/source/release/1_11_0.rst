@@ -1,26 +1,27 @@
 =============================
-Release 1.11.0 - tt. mmm 2025
+Release 1.11.0 - 30. Mär 2025
 =============================
-
-Dieses Release ist ein Wartungs-Release. Außer Bugfixes gibt es einige neue Features im Core von SmartHomeNG,
-sowie einige neue Plugins.
 
 .. only: comment
 
-    Dieses Release ist ein Feature-Release. Es gibt eine Menge neuer Features im Core von SmartHomeNG und den Plugins.
+    Dieses Release ist ein Wartungs-Release. Außer Bugfixes gibt es einige neue Features im Core von SmartHomeNG,
+    sowie einige neue Plugins.
+
+Dieses Release ist ein Feature-Release. Es gibt eine Menge neuer Features im Core von SmartHomeNG und den Plugins.
 
 |
 
-.. only:: develop_branch
+.. only: comment
+    .. only:: develop_branch
 
     .. note::
 
         Diese Release Notes sind ein Arbeitsstand des **develop** Branches.
 
-         - Berücksichtigt sind Commits im smarthome Repository bis inkl. 01. März 2025
-           (core: enable crontab to use eval expressions)
-         - Berücksichtigt sind Commits im plugins Repository bis inkl. 12. Februar 2025
-           (Merge pull request #999 from onkelandy/lms)
+         - Berücksichtigt sind Commits im smarthome Repository bis inkl. 18. März 2025
+           (updated release notes)
+         - Berücksichtigt sind Commits im plugins Repository bis inkl. 18. März 2025
+           (Merge pull request #1005 from Morg42/develop)
 
 
 Überblick
@@ -37,13 +38,13 @@ Die absolute Minimum Python Version in der SmartHomeNG startet, ist **Python 3.8
 Bereits für das SmartHomeNG Release 1.10 wurde die absolute Minimum Python Version auf **Python 3.8** angehoben, da der
 Community Support für Python 3.7 am 27. Juni 2023 endete.
 
-Bei einer Neuinstallation wird jedoch empfohlen auf einer der neueren Python Versionen (3.10 oder 3.11) aufzusetzen.
+Bei einer Neuinstallation wird jedoch empfohlen auf einer der neueren Python Versionen (3.11 oder 3.12) aufzusetzen.
 
 
 Unterstützte Python Versionen
 -----------------------------
 
-Die älteste offiziell unterstützte Python Version für SmartHomeNG Release 1.11.0 ist **Python 3.10**.
+Offiziell unterstützt werden im SmartHomeNG Release 1.11.0 die Python Versionen 3.10, 3.11 und 3.12.
 Automatisierte Tests von SmartHomeNG werden nur in den unterstützten Python Versionen durchgeführt.
 (Siehe auch :ref:`Hard- u. Software Anforderungen <python_versionen>` im Abschnitt **Installation**
 zu unterstützten Python Versionen)
@@ -94,14 +95,6 @@ Updates in the CORE
 
 
 
-* Items:
-
-  * ...
-
-* Logics:
-
-  * ...
-
 * Libs:
 
   * requirements.txt:
@@ -127,6 +120,7 @@ Updates in the CORE
   * lib.db:
 
     * Handle numeric passwords and OrderedDict lists
+    * replace deprecated datetime.utcnow with lib.shtime variant
 
   * lib.env:
 
@@ -233,6 +227,7 @@ Updates in the CORE
   * lib.orb:
 
     * neverup calculation delta can be configured
+    * replace deprecated datetime.utcnow with lib.shtime variant
 
   * lib.plugin:
 
@@ -252,6 +247,10 @@ Updates in the CORE
     * Added the output of 'pip list' to the configuration backup file
     * Removed logging from create_pip_list method
     * Fixed bug in installing requirements, when a wrong pip-command was used
+
+  * lib.shtime:
+
+    * add utcfromtimestamp as replacement for deprecated datetime.utcfromtimestamp
 
   * lib.smarthome:
 
@@ -323,10 +322,6 @@ Updates in the CORE
     * Requirements: Limit websocket version to prevent error due to incompatible changes in websocket lib with version 13.0
     * Fix smartvisu item monitoring
 
-* Plugins:
-
-  * ...
-
 * tests:
 
   * Update mock core
@@ -356,7 +351,7 @@ Allgmein
   * Adjust gitignore for symlinked priv_* dirs
 
 
-.. _releasenotes_1_11_x_neue_plugins:
+.. _releasenotes_1_11_0_neue_plugins:
 
 Neue Plugins
 ------------
@@ -408,8 +403,9 @@ http://www.smarthomeng.de/user/plugins_all.html konsultieren.
   * Added time_precision in plugin.yaml
   * Added _time_precision_query
   * Applied _time_precision_query
-  * Bumped version to 1.16.14
   * Added min and max values for plugin time precision plugin attribute
+  * Check if database item config is set to no or false -> don't write to database
+  * Bumped version to 1.16.15
 
 * db_addon:
 
@@ -592,6 +588,7 @@ http://www.smarthomeng.de/user/plugins_all.html konsultieren.
   * Fix struct items
   * Bump version to 1.8.8
   * Move beaufort calculation from struct to plugin
+  * Replace deprecated datetime.utcnow with lib.shtime variant
 
 * oppo:
 
@@ -649,6 +646,10 @@ http://www.smarthomeng.de/user/plugins_all.html konsultieren.
 * simulation:
 
   * sv_widget option to avoid block with headline
+
+* sma:
+
+  * Replace deprecated datetime.utcnow with lib.shtime variant
 
 * sma_mb:
 
@@ -790,6 +791,7 @@ http://www.smarthomeng.de/user/plugins_all.html konsultieren.
 
   * Changed methode to derive callback IPv4 address
   * Updated Doku
+  * Replace deprecated datetime.utcnow with lib.shtime variant
 
 * yamahayxc:
 
@@ -859,27 +861,10 @@ wechseln.
 
   * wunderground - the free API is not provided anymore by Wunderground - switch to the **piratewthr** or **openweathermap** plugin
 
-
-Retired Plugins
----------------
-
-Die folgenden Plugins wurden *retired* (in den RUhestand geschickt). Sie waren in einem der vorangegangenen
-Releases von SmartHomeNG als *deprecated* markiert worden. Diese Plugins wurden aus dem **plugins** Repository
-entfernt, stehen jedoch als Referenz weiterhin zur Verfügung. Diese Plugins wurden in das **plugin_archive**
-Repositiory aufgenommen.
-
-* ...
-
 |
 
 Weitere Änderungen
 ==================
-
-Tools
------
-
-* ...
-
 
 Dokumentation
 -------------
