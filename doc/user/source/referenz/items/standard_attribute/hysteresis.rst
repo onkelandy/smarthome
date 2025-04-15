@@ -61,7 +61,7 @@ Das Attribut **hysteresis_upper_threshold** definiert den oberen Schwellwert fü
 **Überschreitung** dieses Wertes im Item welches den zu überwachenden Eingabewert darstellt, wird dieses Item auf
 **True** gesetzt.
 
-Optional kann in diesem Attribut eine Dauer angegeben werden, welche die Überscheitung andauern muss, damit der Wert
+Optional kann in diesem Attribut eine Dauer angegeben werden, welche die Überschreitung andauern muss, damit der Wert
 des Items auf **True** gesetzt wird.
 
 Das Item, welches dieses Hysterese Attribut verwendet, muss als **bool** definiert sein.
@@ -81,7 +81,7 @@ Das Attribut **hysteresis_lower_threshold** definiert den unteren Schwellwert f�
 **Unterschreitung** dieses Wertes im Item welches den zu überwachenden Eingabewert darstellt, wird dieses Item auf
 **False** gesetzt.
 
-Optional kann in diesem Attribut eine Dauer angegeben werden, welche die Unterscheitung andauern muss, damit der Wert
+Optional kann in diesem Attribut eine Dauer angegeben werden, welche die Unterschreitung andauern muss, damit der Wert
 des Items auf **False** gesetzt wird.
 
 Das Item, welches dieses Hysterese Attribut verwendet, muss als **bool** definiert sein.
@@ -135,14 +135,14 @@ jeweiligen Mindestdauern für das Zeitglied.
     beschattung_2:
         type: bool
         hysteresis_input: ..helligkeit
-        hysteresis_upper_threshold: sh...einschalthelligkeit() ; sh...einschaltverzögerung()
-        hysteresis_lower_threshold: 900.5 ; 2 * sh...einschaltverzögerung()
+        hysteresis_upper_threshold: sh...einschalthelligkeit() ; sh...einschaltverzoegerung()
+        hysteresis_lower_threshold: 900.5 ; 2 * sh...einschaltverzoegerung()
 
     einschalthelligkeit:
         type: num
         initial_value: 5000
 
-    einschaltverzögerung:
+    einschaltverzoegerung:
         type: num
         initial_value: 60
 
@@ -170,11 +170,11 @@ zusätzliche Statusinformationen
 ===============================
 
 Beim Einrichten einer Konfiguration kann es hilfreich sein, den Zustand des Hysteresis Items genauer zu kennen.
-Hierfür gibt es eine Methode ```hysteresis_state()```, um den aktuellen Zustand des Items über den Status (True/False)
+Hierfür gibt es eine Methode ``hysteresis_state()``, um den aktuellen Zustand des Items über den Status (True/False)
 hinaus abzufragen.
 
 Um die Informationen zu dem Item **beschattung** aus dem obigen Beispiel abzufragen, kann z.B. im eval Syntax Checker
-der Admin GUI der Ausdruck ```sh.beschattung.hysteresis_state()``` eingegeben werden. Als Ergebnis wird ein String
+der Admin GUI der Ausdruck ``sh.beschattung.hysteresis_state()`` eingegeben werden. Als Ergebnis wird ein String
 zurück gegeben, der die folgenden Werte haben kann:
 
 .. csv-table:: Stati eines Hysteresis Items
@@ -186,4 +186,3 @@ zurück gegeben, der die folgenden Werte haben kann:
   "Stay (Off)",      "Der Wert des **hysteresis_input** Items liegt zwischen unterem und oberen Schwellwert und lag vorher unterhalb des unteren Schwellwertes"
   "Timer -> Off",    "Der Wert des **hysteresis_input** Items liegt zwar unterhalb des unteren Schwellwertes, aber der Timer für die Mindestdauer ist noch nicht abgelaufen"
   "Off",             "Der Wert des **hysteresis_input** Items liegt unterhalb des unteren Schwellwertes"
-
