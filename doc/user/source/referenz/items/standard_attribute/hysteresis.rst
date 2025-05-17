@@ -30,7 +30,7 @@ Oberhalb des oberen Schwellwertes
 
 Wenn der Wert des hysteresis_input-Items den oberen Schwellwert überschreitet, wird das Hysterese Item auf **True**
 gesetzt. Das bedeutet, dass das Item bei Überschreitung von False auf True wechselt. Wenn das hysteresis_input-Item
-anschließend weitere Werte oberhalb des oberen Schwellwertes annimmt, wird findet ein Update des Wertes True statt.
+anschließend weitere Werte oberhalb des oberen Schwellwertes annimmt, findet ein Update des Wertes True statt.
 
 zwischen den Schwellwerten
 --------------------------
